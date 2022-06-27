@@ -1,0 +1,43 @@
+{
+  "AllowedIPs": ["1.2.3.4/32", "1.2.3.5/32"],
+  "DNS": ["1.1.1.1", "8.8.8.8"],
+  "DNSNames": ["cloudflare.com"],
+  "Interfaces": {
+    "0": {
+      "endpoint": "5.1.2.3:1",
+      "prefix": "10.0.0."
+    },
+    "1": {
+      "endpoint": "5.1.2.3:2",
+      "prefix": "192.168.99."
+    }
+  },
+  "ServerPublicKey": "a",
+  "Users": {
+    "1": {
+      "email": "one@exmaple.com",
+      "name": "one",
+      "priv": "b",
+      "pub": "c",
+      "tags": ["dev"]
+    },
+    "2": {
+      "configs": [
+        {},
+        {
+          "if": 1
+        },
+        {
+          "route_dns": true
+        },
+        {
+          "no_dns": true
+        }
+      ],
+      "email": "two@example.com",
+      "name": "two",
+      "priv": "d",
+      "pub": "e"
+    }
+  }
+}
