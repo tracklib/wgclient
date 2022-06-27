@@ -1,6 +1,7 @@
 package wgclient
 
 import (
+	"context"
 	"testing"
 
 	_ "embed"
@@ -32,6 +33,22 @@ func TestReadConfig(t *testing.T) {
 		}
 	})
 
+	t.Run("match", func(t *testing.T) {
+		users := conf.Users.Match("one")
+		count := len(users)
+		if count != 1 {
+			t.Errorf("expected 1 users, got: %v", count)
+		}
+	})
+
+	t.Run("match", func(t *testing.T) {
+		users := conf.Users.Match("none")
+		count := len(users)
+		if count != 0 {
+			t.Errorf("expected 0 users, got: %v", count)
+		}
+	})
+
 	t.Run("filter tags", func(t *testing.T) {
 		users := conf.Users.FilterTags("nothing", "dev")
 		count := len(users)
@@ -51,6 +68,7 @@ func TestReadConfig(t *testing.T) {
 		assert.Equal(t, "two@example.com", user.Email)
 		assert.Len(t, user.ClientConfigs, 4)
 	})
+
 }
 
 func TestRenderConfig(t *testing.T) {
@@ -157,4 +175,14 @@ func TestUser(t *testing.T) {
 			NoDNS:    true,
 		}))
 	})
+}
+
+func TestUpdateAllowedIPs(t *testing.T) {
+	conf, err := ReadConfig(testConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Len(t, conf.AllowedIPs, 2)
+	assert.NoError(t, conf.UpdateAllowedIPs(context.Background(), "1.1.1.1:53"))
+	assert.Greater(t, len(conf.AllowedIPs), 2)
 }
