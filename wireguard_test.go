@@ -178,11 +178,24 @@ func TestUser(t *testing.T) {
 }
 
 func TestUpdateAllowedIPs(t *testing.T) {
-	conf, err := ReadConfig(testConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Len(t, conf.AllowedIPs, 2)
-	assert.NoError(t, conf.UpdateAllowedIPs(context.Background(), "1.1.1.1:53"))
-	assert.Greater(t, len(conf.AllowedIPs), 2)
+	t.Run("default resovler", func(t *testing.T) {
+		conf, err := ReadConfig(testConfig)
+		if err != nil {
+			t.Error(err)
+		}
+		assert.NoError(t, conf.UpdateAllowedIPs(context.Background(), ""))
+		assert.Greater(t, len(conf.AllowedIPs), 2)
+
+	})
+
+	t.Run("specified resolver", func(t *testing.T) {
+		conf, err := ReadConfig(testConfig)
+		if err != nil {
+			t.Error(err)
+		}
+		assert.Len(t, conf.AllowedIPs, 2)
+		assert.NoError(t, conf.UpdateAllowedIPs(context.Background(), "1.1.1.1:53"))
+		assert.Greater(t, len(conf.AllowedIPs), 2)
+	})
+
 }

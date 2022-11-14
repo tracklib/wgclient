@@ -54,16 +54,42 @@ type Config struct {
 func (c *Config) UpdateAllowedIPs(ctx context.Context, nameserver string) error {
 	var res []string
 	for _, n := range c.DNSNames {
-		r := &net.Resolver{
-			PreferGo: true,
-			Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-				d := net.Dialer{
-					Timeout: time.Millisecond * time.Duration(10000),
-				}
-				return d.DialContext(ctx, network, nameserver)
-			},
+		r := net.DefaultResolver
+		if nameserver != "" {
+			r = &net.Resolver{
+				PreferGo: true,
+				Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+					d := net.Dialer{
+						Timeout: time.Second * 10,
+					}
+					return d.DialContext(ctx, network, nameserver)
+				},
+			}
 		}
 		ips, err := r.LookupIP(ctx, "ip4", n)
+		if err != nil {
+			log.Error().Str("dns_name", n).Err(err).Msg("")
+			return err
+		}
+		if len(ips) == 0 {
+			log.Error().Str("dns_name", n).Msg("no DNS resolver response for dns name")
+			return errors.New("no DNS resolver response for dns name")
+		}
+		for _, ip := range ips {
+			res = append(res, fmt.Sprintf("%s/32", ip))
+		}
+	}
+	res = append(res, c.AllowedIPs...)
+	sort.Strings(res)
+	c.AllowedIPs = compact(res)
+	return nil
+}
+
+func (c *Config) UpdateAllowedIPsWithDefaultResolver(ctx context.Context) error {
+	var res []string
+	for _, n := range c.DNSNames {
+
+		ips, err := net.DefaultResolver.LookupIP(ctx, "ip4", n)
 		if err != nil {
 			log.Error().Str("dns_name", n).Err(err).Msg("")
 			return err
