@@ -52,20 +52,20 @@ type Config struct {
 }
 
 func (c *Config) UpdateAllowedIPs(ctx context.Context, nameserver string) error {
-	r := net.DefaultResolver
-	if nameserver != "" {
-		r = &net.Resolver{
-			PreferGo: true,
-			Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-				d := net.Dialer{
-					Timeout: time.Second * 10,
-				}
-				return d.DialContext(ctx, network, nameserver)
-			},
-		}
-	}
 	var res []string
 	for _, n := range c.DNSNames {
+		r := net.DefaultResolver
+		if nameserver != "" {
+			r = &net.Resolver{
+				PreferGo: true,
+				Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+					d := net.Dialer{
+						Timeout: time.Second * 10,
+					}
+					return d.DialContext(ctx, network, nameserver)
+				},
+			}
+		}
 		ips, err := r.LookupIP(ctx, "ip4", n)
 		if err != nil {
 			log.Error().Str("dns_name", n).Err(err).Msg("")
